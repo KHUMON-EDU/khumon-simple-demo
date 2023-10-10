@@ -1,6 +1,6 @@
 # app/Dockerfile
 
-FROM python:3.9-slim
+FROM python:3.11
 
 WORKDIR /app
 
@@ -10,12 +10,9 @@ RUN apt-get update \
     curl \
     software-properties-common \
     git \
+    libgl1 \
     && rm -rf /var/lib/apt/lists/*
 
-
-RUN apt-get install -y \
-    libgl1 \
-    libgl1-mesa-glxx
 
 
 RUN git clone https://github.com/KHUMON-EDU/khumon-simple-demo .
