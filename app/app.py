@@ -7,13 +7,38 @@ from dotenv import load_dotenv
 from langchain.document_loaders import PyPDFLoader
 from langchain.chat_models import ChatOpenAI
 from PIL import Image
+import whisper
 
 load_dotenv()
 
 url_regex = (
     "(https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z0-9]{2,}(\.[a-zA-Z0-9]{2,})(\.[a-zA-Z0-9]{2,})?"
 )
+with st.spinner("모델 준비 중 🏃"):
+    model = whisper.load_model("base")
 
+def process_pdf(source):
+    try:
+        with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+            tmp_file.write(source.read())
+        loader = PyPDFLoader(tmp_file.name, extract_images=is_ocr)
+        pages = loader.load_and_split()
+        os.remove(tmp_file.name)
+        docs = get_docs(pages)
+        return docs
+
+    except:
+        pass
+
+def process_mp4(source):
+    try:
+        with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+            tmp_file.write(source.read())
+        source_text = model.transcribe(tmp_file.name, verbose=True)['text']
+        return source_text
+
+    except:
+        pass
 
 def get_docs(pages):
     docs = ""
@@ -28,19 +53,25 @@ logo_image = Image.open("static/logo.jpg")
 st.image(logo_image, width=100)
 st.title("KHUMON DEMO")
 
-is_ocr = st.toggle('Extract images from pdf')
+with st.sidebar:
+    input_format = st.radio("Input Format",["PDF", "VIDEO"])
 
-source_doc = st.file_uploader("강의 PDF를 업로드해주세요!", type="pdf", label_visibility="collapsed")
+if input_format == 'PDF':
+    is_ocr = st.toggle('Extract images from pdf')
+    source = st.file_uploader("강의 PDF를 업로드해주세요!", type="pdf", label_visibility="collapsed")
+
+elif input_format =="VIDEO":
+    source = st.file_uploader("강의 비디오(MP4)를 업로드해주세요!", type="mp4", label_visibility="collapsed")
+
+
 
 if st.button("Make! ✈️"):
     try:
-        with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
-            tmp_file.write(source_doc.read())
         with st.spinner("분석 중 🏃"):
-            loader = PyPDFLoader(tmp_file.name, extract_images=is_ocr)
-            pages = loader.load_and_split()
-            os.remove(tmp_file.name)
-            docs = get_docs(pages)
+            if input_format == 'PDF':
+                docs = process_pdf(source)
+            elif input_format == 'VIDEO':
+                docs = process_mp4(source)
 
             llm = ChatOpenAI(temperature=0)
             summary = llm.predict(
