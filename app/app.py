@@ -15,7 +15,7 @@ url_regex = (
     "(https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z0-9]{2,}(\.[a-zA-Z0-9]{2,})(\.[a-zA-Z0-9]{2,})?"
 )
 with st.spinner("모델 준비 중 🏃"):
-    model = whisper.load_model("base")
+    model = whisper.load_model("tiny")
 
 def process_pdf(source):
     try:
