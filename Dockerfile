@@ -6,18 +6,16 @@ WORKDIR /app
 
 RUN apt-get update \
     && apt-get install -y \
-    build-essential \
-    curl \
-    software-properties-common \
-    git \
     libgl1 \
-    && rm -rf /var/lib/apt/lists/*
+    ffmpeg
 
+COPY ./requirements.txt /app/requirements.txt
 
+RUN pip install --no-cache-dir -r /app/requirements.txt
 
-RUN git clone https://github.com/KHUMON-EDU/khumon-simple-demo .
+COPY ./app /app/app
 
-RUN pip3 install -r requirements.txt
+COPY ./static /app/static
 
 EXPOSE 8501
 
