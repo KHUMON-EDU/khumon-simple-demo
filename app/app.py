@@ -54,13 +54,13 @@ st.image(logo_image, width=100)
 st.title("KHUMON DEMO")
 
 with st.sidebar:
-    input_format = st.radio("Input Format",["PDF", "VIDEO"])
+    mode = st.radio("Input Format",["PDF", "VIDEO"])
 
-if input_format == 'PDF':
+if mode == 'PDF':
     is_ocr = st.toggle('Extract images from pdf')
     source = st.file_uploader("강의 PDF를 업로드해주세요!", type="pdf", label_visibility="collapsed")
 
-elif input_format =="VIDEO":
+elif mode =="VIDEO":
     source = st.file_uploader("강의 비디오(MP4)를 업로드해주세요!", type="mp4", label_visibility="collapsed")
 
 
@@ -68,9 +68,9 @@ elif input_format =="VIDEO":
 if st.button("Make! ✈️"):
     try:
         with st.spinner("분석 중 🏃"):
-            if input_format == 'PDF':
+            if mode == 'PDF':
                 docs = process_pdf(source)
-            elif input_format == 'VIDEO':
+            elif mode == 'VIDEO':
                 docs = process_mp4(source)
 
             llm = ChatOpenAI(temperature=0)
