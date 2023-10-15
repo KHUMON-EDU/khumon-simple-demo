@@ -74,7 +74,7 @@ if st.button("Make! ✈️"):
             elif mode == 'VIDEO':
                 docs = process_mp4(source)
 
-            llm = ChatOpenAI(temperature=0)
+            llm = ChatOpenAI(model_name='gpt-3.5-turbo-16k', temperature=0)
             summary = llm.predict(
                 f"당신은 전공 강의 자료 요약기 입니다. 아래 주어진 대본을 키워드 위주로 적절하게 요약하세요. 링크나 의미 없는 단어, 문장 들은 무시해도 좋습니다. 대본: {docs[:10000]} "
             )
