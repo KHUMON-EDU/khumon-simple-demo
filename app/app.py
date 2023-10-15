@@ -7,38 +7,39 @@ from dotenv import load_dotenv
 from langchain.document_loaders import PyPDFLoader
 from langchain.chat_models import ChatOpenAI
 from PIL import Image
-import whisper
+from moviepy.editor import VideoFileClip, vfx
+import openai
 
-load_dotenv()
+load_dotenv(verbose=True)
 
 url_regex = (
     "(https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z0-9]{2,}(\.[a-zA-Z0-9]{2,})(\.[a-zA-Z0-9]{2,})?"
 )
-with st.spinner("모델 준비 중 🏃"):
-    model = whisper.load_model("tiny")
+
 
 def process_pdf(source):
-    try:
-        with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
-            tmp_file.write(source.read())
-        loader = PyPDFLoader(tmp_file.name, extract_images=is_ocr)
-        pages = loader.load_and_split()
-        os.remove(tmp_file.name)
-        docs = get_docs(pages)
-        return docs
-
-    except:
-        pass
+    with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+        tmp_file.write(source.read())
+    loader = PyPDFLoader(tmp_file.name, extract_images=is_ocr)
+    pages = loader.load_and_split()
+    os.remove(tmp_file.name)
+    docs = get_docs(pages)
+    return docs
 
 def process_mp4(source):
-    try:
-        with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
-            tmp_file.write(source.read())
-        source_text = model.transcribe(tmp_file.name, verbose=True)['text']
-        return source_text
+    with tempfile.TemporaryDirectory() as td:
+        tmp_video_path  = os.path.join(td,'temp_video.mp4')
+        tmp_audio_path =os.path.join(td,'temp_audio.mp3')
 
-    except:
-        pass
+        with open(tmp_video_path, 'wb') as tmp_video:
+            tmp_video.write(source.read())
+        video_clip = VideoFileClip(tmp_video_path)
+        video_clip = video_clip.fx(vfx.speedx, 1.5)
+        video_clip.audio.write_audiofile(tmp_audio_path)
+        with open(tmp_audio_path, 'rb') as tmp_audio:
+            transcript = openai.Audio.transcribe("whisper-1", tmp_audio, api_key=os.getenv("OPENAI_API_KEY"))['text']
+
+    return transcript
 
 def get_docs(pages):
     docs = ""
